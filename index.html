@@ -13,9 +13,9 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: radial-gradient(circle, #f9f9f9, #e3e3e3);
+            background: white;
             overflow: hidden;
-            font-family: Arial, sans-serif;
+            font-family: 'ellograph-cf', monospace;
         }
         .trashcan {
             width: 80px;
@@ -24,33 +24,21 @@
             cursor: pointer;
         }
         .paper {
-            width: 50px;
-            height: 50px;
             background: url('img/paper1.png') no-repeat center/contain;
             position: absolute;
-            display: none;
             cursor: grab;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
         }
         .info-box {
             position: absolute;
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
             text-align: center;
             display: none;
             z-index: 10;
-        }
-        .button-box {
-            margin-top: 20px;
-        }
-        button {
-            background-color: grey;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            border: 1px solid black;
+            font-family: 'ellograph-cf', monospace;
+            font-size: 18px;
         }
         .centered {
             position: absolute;
@@ -62,6 +50,13 @@
             font-family: 'ellograph-cf', monospace;
             margin-top: 20px;
         }
+        a {
+            text-decoration: none;
+            color: black;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -69,44 +64,62 @@
         conan richards
     </div>
     <div class="trashcan" onclick="throwPaper()"></div>
-    <div class="paper" id="paper" onclick="showInfo()"></div>
-    <div class="info-box" id="info-box">Week 1
-        <div class="button-box" id="button-box" style="display: none;">
-            <a href="w1/index.html"><button>go</button></a>
-        </div>
-    </div>
-    
+
     <script>
-        let paper = document.getElementById('paper');
-        let infoBox = document.getElementById('info-box');
         let trashcan = document.querySelector('.trashcan');
-        let buttonBox = document.getElementById('button-box');
+        let allPapers = [];
+        let weeks = [
+            { name: 'Week 1', link: 'w1/index.html' },
+            { name: 'Week 2', link: 'w2/index.html' },
+            { name: 'Week 3', link: 'w3/index.html' },
+            { name: 'Week 4', link: 'w4/index.html' }
+        ];
 
         function throwPaper() {
-            paper.style.display = 'block';
-            const randomX = Math.floor(Math.random() * (window.innerWidth - paper.offsetWidth));
-            const randomY = Math.floor(Math.random() * (window.innerHeight - paper.offsetHeight));
+            let paper = document.createElement('div');
+            paper.classList.add('paper');
+
+            const randomX = Math.floor(Math.random() * (window.innerWidth - 50));
+            const randomY = Math.floor(Math.random() * (window.innerHeight - 50));
+            const sizeFactor = Math.pow(randomY / window.innerHeight, 2);
+            const paperSize = 10 + 150 * sizeFactor;
+
+            paper.style.width = paperSize + 'px';
+            paper.style.height = paperSize + 'px';
             paper.style.left = randomX + 'px';
             paper.style.top = randomY + 'px';
+
+            let randomWeek = weeks[Math.floor(Math.random() * weeks.length)];
+            let infoBox = document.createElement('div');
+            infoBox.classList.add('info-box');
+            infoBox.innerHTML = '<a href="' + randomWeek.link + '">' + randomWeek.name + '</a>';
+
+            paper.addEventListener('click', function() {
+                if (infoBox.style.display === 'block') {
+                    infoBox.style.display = 'none';
+                } else {
+                    infoBox.style.display = 'block';
+                    infoBox.style.top = (randomY + 60) + 'px';
+                    infoBox.style.left = randomX + 'px';
+                }
+            });
+
+            document.body.appendChild(paper);
+            document.body.appendChild(infoBox);
+            allPapers.push(paper);
+            allPapers.push(infoBox);
         }
 
-        function showInfo() {
-            console.log("show info triggered");
-            const rect = paper.getBoundingClientRect();
-            if (infoBox.style.display === 'block') {
-                infoBox.style.display = 'none';
-                buttonBox.style.display = 'none';
-            } else {
-                infoBox.style.display = 'block';
-                buttonBox.style.display = 'block';
-                infoBox.style.position = 'absolute';
-                infoBox.style.top = (rect.top + 60) + 'px';
-                infoBox.style.left = (rect.left) + 'px';
+        function clearAllPapers() {
+            allPapers.forEach(paper => paper.remove());
+            allPapers = [];
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === '0') {
+                clearAllPapers();
             }
-        }
-        
-
-       
+        });
     </script>
 </body>
 </html>
