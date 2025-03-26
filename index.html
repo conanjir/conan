@@ -1,83 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
-<!--
 
-helloooooǒõ
-
--->
+<!-- this is all chatgpt lol -->
 <head>
+    <link rel="stylesheet" href="https://use.typekit.net/rma7vef.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Wii-Inspired Portfolio</title>
     <style>
-        * {
-            margin: 0px;
-            padding: 0px;
-        }
-        header {
-
-            background-color: white;
-            height: 10vh;
-        }
         body {
-
-            width: 100vw;
-            height: 100vw;
-            font-size: 14px;
-        
-        }
-        
-        .flex {
             display: flex;
-            flex-direction: row;
-            justify-content: baseline;
-            width: 100%;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: radial-gradient(circle, #f9f9f9, #e3e3e3);
+            overflow: hidden;
+            font-family: Arial, sans-serif;
         }
-
-        #menu {
+        .trashcan {
+            width: 80px;
+            height: 100px;
+            background: url('img/bin.png') no-repeat center/contain;
+            cursor: pointer;
+        }
+        .paper {
+            width: 50px;
+            height: 50px;
+            background: url('img/paper1.png') no-repeat center/contain;
+            position: absolute;
+            display: none;
+            cursor: grab;
+        }
+        .info-box {
+            position: absolute;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: none;
+            z-index: 10;
+        }
+        .button-box {
+            margin-top: 20px;
+        }
+        button {
             background-color: grey;
-            width: 30%;
-            padding: 4px;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
-
-        #content {
-            width: 70%;
-            background-color: whitesmoke;
-            padding: 4px;
+        .centered {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'ellograph-cf', monospace;
+            margin-top: 20px;
         }
-
-        h3 {
-
-            font-size: xx-large;
-        }
-
-
     </style>
 </head>
 <body>
-    <head>
-        <header>
-            <h1>
-                INTERACTIVE MEDIA
-            </h1>
-        </header>
-        <div class="flex">
-            <div id="menu">
-                <a href="w1/index.html">
-                    <button>
-                        week 1
-
-                    </button> 
-                </a>
-                
-            </div>
-            <div id="content">
-                <h3>yahoo</h3>
-                <p>
-                    Urgent warning as hundreds of toxic creatures wash ashore in Aussie town: 'Can cause death'Pet owners have been warned in particular to avoid the area, as ingestion by a dog can lead to seizures and even death.
-                </p>
-            </div>
+    <div class="centered">
+        conan richards
+    </div>
+    <div class="trashcan" onclick="throwPaper()"></div>
+    <div class="paper" id="paper" onclick="showInfo()"></div>
+    <div class="info-box" id="info-box">Week 1
+        <div class="button-box" id="button-box" style="display: none;">
+            <a href="w1/index.html"><button>go</button></a>
         </div>
-    </head>
+    </div>
+    
+    <script>
+        let paper = document.getElementById('paper');
+        let infoBox = document.getElementById('info-box');
+        let trashcan = document.querySelector('.trashcan');
+        let buttonBox = document.getElementById('button-box');
+
+        function throwPaper() {
+            paper.style.display = 'block';
+            const randomX = Math.floor(Math.random() * (window.innerWidth - paper.offsetWidth));
+            const randomY = Math.floor(Math.random() * (window.innerHeight - paper.offsetHeight));
+            paper.style.left = randomX + 'px';
+            paper.style.top = randomY + 'px';
+        }
+
+        function showInfo() {
+            console.log("show info triggered");
+            const rect = paper.getBoundingClientRect();
+            if (infoBox.style.display === 'block') {
+                infoBox.style.display = 'none';
+                buttonBox.style.display = 'none';
+            } else {
+                infoBox.style.display = 'block';
+                buttonBox.style.display = 'block';
+                infoBox.style.position = 'absolute';
+                infoBox.style.top = (rect.top + 60) + 'px';
+                infoBox.style.left = (rect.left) + 'px';
+            }
+        }
+        
+
+       
+    </script>
 </body>
 </html>
