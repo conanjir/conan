@@ -27,7 +27,7 @@
             background: url('img/paper1.png') no-repeat center/contain;
             position: absolute;
             cursor: grab;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+            /* filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)); */
         }
         .info-box {
             position: absolute;
@@ -118,6 +118,10 @@
         document.addEventListener('keydown', function(event) {
             if (event.key === '0') {
                 clearAllPapers();
+            }
+            if (event.key >= '1' && event.key <= '4') {
+                let weekNumber = parseInt(event.key);
+                window.location.href = weeks[weekNumber - 1].link;
             }
         });
     </script>
