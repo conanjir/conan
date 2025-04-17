@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Self-Portrait</title>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="portrait.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../room-assets/css/terminal-style.css">
+
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: 'Press Start 2P', monospace;
+      color: white;
+    }
+
+    .terminal-scroll {
+      width: 100%;
+      max-width: 800px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+
+    img {
+      width: 200px;
+      border: 2px solid rgb(255, 0, 0);
+      margin-bottom: 40px;
+    }
+
+    canvas {
+      display: block;
+      margin-bottom: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal-scroll">
+    <div class="image-container">
+      <h1>Self-Portrait</h1>
+      <img src="data/portrait.jpeg" alt="Reference Portrait">
+    </div>
+  </div>
+</body>
+</html>

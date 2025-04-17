@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mirror Room</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+  
+  
+  <style>
+    @font-face {
+      font-family: "PressStart";
+      src: url("../data/PressStart2P-Regular.ttf") format("truetype");
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+    }
+    @font-face {
+    font-family: "PressStart";
+    src: url("data/PressStart2P-Regular.ttf") format("truetype");
+    }
+    
+    #screenOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 5;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.02),
+        #ffffff05 2px,
+        transparent 2px,
+        transparent 4px
+      );
+    }
+
+    .return-link {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #ff0000;
+      background: rgba(80, 60, 60, 0.75);
+      padding: 10px 14px;
+      font-family: "PressStart", monospace;
+      font-size: 10px;
+      text-shadow: 0 0 4px rgb(100, 0, 0);
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    .return-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="return-link">&larr; RETURN TO OVERWORLD</a>
+  <div id="screenOverlay"></div>
+
+  <script src="mirror.js"></script>
+</body>
+</html>

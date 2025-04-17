@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Library Room</title>
+    <link rel="stylesheet" href="../room-assets/css/terminal-style.css">
+    <script src="../room-assets/js/p5.min.js"></script>
+    <script src="../room-assets/js/room-template.js"></script>
+    <script>
+      window.addEventListener("load", () => {
+        terminals = [
+          { label: "Sketch: Yayoi Kusama", x: -400, y: 0, z: -600, page: "../terminal-content/kusama/kusama.html" },
+          { label: "Sketch: Freak Composition", x: 0, y: 200, z: -600, page: "../terminal-content/freak_composition/freak_composition.html" },
+          { label: "Sketch: Self-Portrait", x: 400, y: 0, z: -600, page: "../terminal-content/portrait/portrait.html" },
+          { label: "Sketch: Text Manipulation", x: -400, y: 300, z: -600, page: "../terminal-content/textaaa/textaaa.html" },
+          { label: "Photo: Bag Data Visualisation", x: 0, y: -100, z: -600, page: "../terminal-content/bag/bag.html" },
+          { label: "Sketch: Cat", x: 0, y: 500, z: -600, page: "../terminal-content/cat/cat.html" },
+          { label: "Sketch: Hands Up", x: 400, y: 300, z: -600, page: "../terminal-content/handsup/handsup.html" }
+        ];
+
+      });
+      console.log("Loaded terminals:", terminals);
+    </script>
+
+    <style>
+      @font-face {
+        font-family: "PressStart";
+        src: url('../data/PressStart2P-Regular.ttf') format('truetype');
+
+      }
+  
+      body {
+        margin: 0;
+        background: black;
+        color: #ff0000;
+        font-family: "PressStart", monospace;
+        font-size: 12px;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HUD Panel -->
+    <div id="terminalText">
+      <b>THE LIBRARY</b><br><br>
+      Explore archived projects and sketches.<br><br>
+      <span style="color: #999;">WASD / MOUSE</span> — Look around<br>
+      <span style="color: #999;">E</span> — Open terminal<br>
+      <span style="color: #999;">ESC</span> — Close terminal<br>
+      <span style="color: #999;">Q</span> — Return to index<br><br>
+      <span id="systemStatus">&gt; SYSTEM READY</span>
+    </div>
+
+  
+    <div id="screenOverlay"></div>
+    
+
+    <div id="roomOverlay">
+      <h1>TERMINAL ACCESS</h1>
+      <p>Press [Esc] to close</p>
+    </div>
+    <div id="crosshair">+</div>
+  </body>
+</html>
+
+<script>
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      e.preventDefault();
+
+      if (inspectingTerminal) {
+        inspectingTerminal = null;
+        overlay.hide();
+
+        const roomOverlay = document.getElementById("roomOverlay");
+        if (roomOverlay) roomOverlay.style.display = "none";
+      }
+    }
+  });
+</script> 

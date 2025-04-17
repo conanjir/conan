@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bag Visualisation</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../room-assets/css/terminal-style.css">
+
+  <!-- Inline styles for custom layout tweaks -->
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .terminal-scroll {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .image-container {
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    .image-container img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .rotated-image {
+      transform: rotate(90deg);
+      transform-origin: top left;
+      width: auto;
+      height: 100vh;
+    }
+
+    .terminal-text p {
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal-scroll">
+    
+    <!-- BAG 1: Personal Bag -->
+    <div class="image-container">
+      <h1>Bag Contents Data Visualisation</h1>
+        <h2>1. Personal Bag Contents</h2>
+        <img src="data/bag.jpeg" alt="Personal Bag Contents Visualised">
+      </div>
+
+      <div class="terminal-text">
+        <p>
+          This was an exercise in data visualisation, revealing the contents inside bags. The first image showcases the contents of my own bag, arranged in order of personal importance — from the items I'd be most upset to lose, to those I'd be least sad about.
+        </p>
+      </div>
+
+      <!-- BAG 2: Group Bag -->
+      <div class="image-container">
+        <h2>2. Grouped Bag Contents</h2>
+        <img src="data/bag1.jpeg" alt="Group Bag Contents Visualised">
+      </div>
+
+      <div class="terminal-text">
+        <p>
+          The second image displays the combined contents of my bag and those of two classmates. We visualised our items according to how likely they would be banned by the government — from most to least. Alternatively, you could interpret the ordering as a scale from least moral or most harmful to most moral or least harmful.
+        </p>
+        <p>
+          It’s interesting to observe that the items most likely to cause harm to society tend to be more technically complex — they require more components and effort to produce. Perhaps this suggests a need to return to simpler times and make better use of simple goods. These items, it seems, cause the least harm to both oneself and others.
+        </p>
+      <div class="image-container"><img src="data/bag2.jpeg"></div>
+      </div>
+
+  </div>
+</body>
+</html>

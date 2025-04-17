@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Library Terminal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    @font-face {
+      font-family: "PressStart";
+      src: url("../data/PressStart2P-Regular.ttf") format("truetype");
+    }
+
+    body {
+      margin: 0;
+      background: black;
+      color: #ff0000;
+      font-family: "PressStart", monospace;
+      font-size: 12px;
+      overflow: hidden;
+    }
+
+    #screenOverlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.01),
+        rgba(255, 255, 255, 0.01) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+    }
+
+    .return-link {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #ff0000;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px 14px;
+      font-family: "PressStart", monospace;
+      font-size: 10px;
+      text-shadow: 0 0 4px #00ffee;
+      pointer-events: auto;
+      z-index: 10;
+      text-decoration: none;
+    }
+
+    .return-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="return-link">&larr; RETURN TO OVERWORLD</a>
+  <div id="screenOverlay"></div>
+
+  <script>
+    let font;
+    let pageIndex = 0;
+    let pages = [
+      "PAGE 1\n\nWeek 4: Algorithmic Thinking\n\nI explored how rule-based patterns can create complexity.\n\nExperiments with loops, random walks, and basic 2D transformations helped me get comfortable.",
+      "PAGE 2\n\nExperiment: Moiré Grid\n\nIn this sketch, overlapping lines created interference effects.\nI adjusted spacing and animation speed to create rhythmic pulses.",
+      "PAGE 3\n\nReflection\n\nCoding helped me visualise how simple repetition can create meaning.\nMistakes became part of the process.\nI felt more fluent by the end of Week 4."
+    ];
+
+    function preload() {
+      font = loadFont("../data/PressStart2P-Regular.ttf");
+    }
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      textFont(font);
+      textSize(10);
+      textLeading(14);
+      fill(255, 0, 0);
+      noStroke();
+    }
+
+    function draw() {
+      background(0, 0, 0, 240);
+      let margin = 60;
+      text(pages[pageIndex], margin, margin, width - margin * 2);
+    }
+
+    function keyPressed() {
+      if (keyCode === RIGHT_ARROW) {
+        pageIndex = (pageIndex + 1) % pages.length;
+      } else if (keyCode === LEFT_ARROW) {
+        pageIndex = (pageIndex - 1 + pages.length) % pages.length;
+      }
+    }
+  </script>
+</body>
+</html>
