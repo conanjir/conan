@@ -1,34 +1,68 @@
 //mostly chatgpt & the official p5js documentation
 //but i did watch a couple videos on p5js specifically shaders and went down a rabbit hole 
 //barney codes youtube channel is extremely resourceful
+
+import { initPortalOverlay } from './portalOverlay.js';
 let offscreenBuffer;
 let fisheye = 6;
 let tileSize;
-const cols = 16;
-const rows = 16;
-let player = { x: 8, y: 8, tx: 8, ty: 8, animSpeed: 0.15 };
+const cols = 16, rows = 16;
+let player = { x:8, y:8, tx:8, ty:8, animSpeed:0.15 };
 let grid = [];
 let font, skyTex, floorTex, colourTex;
 let terminalDiv;
 const rm = 5;
-const portals = {
-  "3,3": { label: "LIBRARY", url: "pages/library.html" },
-  "10,5": { label: "LAB", url: "pages/lab.html" },
-  "6,12": { label: "MIRROR ROOM", url: "pages/mirror.html" }
+
+import { workshopData } from './workshop/workshopData.js';
+
+const playgroundData = [
+  { id: 'all', title: 'All Sketches', children: [
+      { title: 'Void & Grid', url: '#sketch-void' },
+      /* … */
+    ]
+  }
+];
+
+const archiveData = [
+  { id: 'w1-4', title: 'Weeks 1–4 Precedents', children: [
+      { title: 'teamLab Borderless', url: '#teamlab' },
+      /* … */
+    ]
+  }
+];
+const portalsConfig = {
+  '3,3': { label: 'The Workshop',   content: workshopData },
+  '10,5':{ label: 'The Playground', content: playgroundData },
+  '6,12':{ label: 'The Archive',    content: archiveData }
 };
 
+// timing & state
+let portalState     = "grid";   // "grid" | "zooming" | "overlay" | "zooming-back"
+let zoomStartTime   = 0;
+const ZOOM_DURATION = 50;
+
+// for hit-testing cube
+let currentPortalKey = null;
+
+let tiltX = 0, tiltY = 0;
+
 function preload() {
-  font = loadFont("./data/PressStart2P-Regular.ttf");
-  skyTex = loadImage("./data/sb.png"); 
-  floorTex = loadImage("./data/mb_bw.png"); 
-  colourTex = loadImage("./data/mbp5.png");
+  font      = loadFont("data/PressStart2P-Regular.ttf");
+  skyTex    = loadImage("data/sb.png");
+  floorTex  = loadImage("data/mb_bw.png");
+  colourTex = loadImage("data/mbp5.png");
 }
 
 function setup() {
+  noCursor();
   terminalDiv = document.getElementById("terminalText");
   pixelDensity(1);
   noSmooth();
-  createCanvas(windowWidth, windowHeight, WEBGL);
+  const canvas = createCanvas(windowWidth, windowHeight, WEBGL);
+  canvas.parent('canvasContainer');          // works on p5.Element
+  canvas.elt.setAttribute('tabindex','0');    // then tweak the raw element
+  canvas.elt.focus();
+
   calculateTileSize();
   setupGrid();
   updateTerminalText();
@@ -40,6 +74,20 @@ function setup() {
   noStroke();
   noCursor();
   rectMode(CENTER);
+
+  document.getElementById('closeOverlay')
+    .addEventListener('click', hideOverlay);
+
+  const startO = document.getElementById('startOverlay');
+  startO.addEventListener('click', () => {
+    startO.style.opacity = '0';
+    setTimeout(() => (startO.style.display = 'none'), 500);
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') e.preventDefault();
+  });
+  
 }
 
 function draw() {
@@ -52,117 +100,123 @@ function draw() {
 }
 
 function drawToBuffer() {
-  drawSkybox(offscreenBuffer);
   drawVoid(offscreenBuffer);
   drawFloor(offscreenBuffer);
   drawGrid(offscreenBuffer);
 }
 
-function drawSkybox(gfx) {
-  gfx.push();
-  gfx.resetMatrix();
-  gfx.noStroke();
-  gfx.texture(skyTex);
-  tiltWithMouse(gfx);
-  gfx.rotateX(PI / 2);
-  gfx.sphere(3000, 64, 64);
-  gfx.pop();
-}
 
 function drawVoid(gfx) {
-  gfx.push();
-  tiltWithMouse(gfx);
-  const camX = player.x * tileSize + tileSize / 2;
-  const camY = player.y * tileSize + tileSize / 2;
-
-  gfx.translate(-camX, -camY);
-  gfx.noStroke();
-  gfx.fill(0);
-  gfx.translate(0, 0, -501);
-  gfx.box(cols * tileSize * 4, rows * tileSize * 4, 10);
-  gfx.pop();
+  withCamera(gfx, 0, () => {
+    gfx.noStroke();
+    gfx.fill(0);
+    gfx.translate(0, 0, -501);
+    gfx.box(cols * tileSize * 4, rows * tileSize * 4, 10);
+  });
 }
 
 function drawFloor(gfx) {
-  gfx.push();
-  tiltWithMouse(gfx);
-  gfx.translate(0, 0, -150);
-
-  const camX = player.x * tileSize + tileSize / 2;
-  const camY = player.y * tileSize + tileSize / 2;
-
-  gfx.translate(-camX+340, -camY+330);
-  gfx.noStroke();
-  gfx.texture(floorTex);
-  gfx.box(cols * tileSize * rm, rows * tileSize * rm, 300);
-  gfx.pop();
+  // 1) Use your camera helper exactly as drawGrid does
+  withCamera(gfx, 50, () => {
+    gfx.push();
+      // 2) shift the floor’s center to the grid’s world‐space midpoint:
+      const gridCenterX = (cols * tileSize) / 2;
+      const gridCenterY = (rows * tileSize) / 2;
+      gfx.translate(gridCenterX, gridCenterY, -100);
+      
+      // 3) draw the big textured box (300 tall → top at Z=0)
+      gfx.noStroke();
+      gfx.texture(floorTex);
+      gfx.box(
+        cols * tileSize * rm,
+        rows * tileSize * rm,
+        300
+      );
+    gfx.pop();
+  });
 }
+
 
 function drawGrid(gfx) {
-  gfx.push();
-  tiltWithMouse(gfx);
-  // Calculate center offset so player stays centered
-  const camX = player.x * tileSize + tileSize / 2;
-  const camY = player.y * tileSize + tileSize / 2;
+  withCamera(gfx, 50, () => {
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const tile    = grid[y][x];
+        const isAccess= tile === 1;
+        const isHere  = (round(player.x) === x && round(player.y) === y);
+        const baseX   = x * tileSize + tileSize/2;
+        const baseY   = y * tileSize + tileSize/2;
+        const zOffset = (isAccess && isHere) ? sin(frameCount * 0.3) * 10 : 0;
 
-  gfx.translate(-camX, -camY+50);     
-
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const tile = grid[y][x];
-      const isAccess = tile === 1;
-      const isHere = (round(player.x) === x && round(player.y) === y);
-
-      gfx.push();
-      const baseX = x * tileSize + tileSize / 2;
-      const baseY = y * tileSize + tileSize / 2;
-      const zOffset = (isAccess && isHere) ? sin(frameCount * 0.3) * 10 : 0;
-      gfx.translate(baseX, baseY, zOffset);
-
-      if (isAccess) {
-        if (isHere) {
-          gfx.noStroke();               // Red box — no outline
-          gfx.fill(255, 0, 0);
-        } else {
-          gfx.stroke(255);              // Black box — white outline
-          gfx.strokeWeight(2);
-          gfx.fill(0);
-        }
-        gfx.box(tileSize, tileSize, 100);
-      } else {
-        gfx.stroke(255);
-        gfx.noFill();
-        gfx.strokeWeight(2);
-        gfx.rect(0, 0, tileSize, tileSize);
+        gfx.push();
+          gfx.translate(baseX, baseY, zOffset+50);
+          if (isAccess) {
+            if (isHere) {
+              gfx.noStroke();
+              gfx.fill(255, 0, 0);
+            } else {
+              gfx.stroke(255);
+              gfx.strokeWeight(2);
+              gfx.fill(0);
+            }
+            gfx.box(tileSize, tileSize, 100);
+          } else {
+            gfx.stroke(255);
+            gfx.noFill();
+            gfx.strokeWeight(2);
+            gfx.rect(0, 0, tileSize, tileSize);
+          }
+        gfx.pop();
       }
-      
-      gfx.pop();
     }
-  }
 
-  player.x = lerp(player.x, player.tx, player.animSpeed);
-  player.y = lerp(player.y, player.ty, player.animSpeed);
+    // smooth the player’s LERP here once per frame
+    player.x = lerp(player.x, player.tx, player.animSpeed);
+    player.y = lerp(player.y, player.ty, player.animSpeed);
+  });
 
-  gfx.push();
-  gfx.translate(
-    player.x * tileSize + tileSize / 2,
-    player.y * tileSize + tileSize / 2,
-    tileSize * 0.3 + sin(frameCount * 0.3) * 2
-  );
-  gfx.fill(255, 0, 0);
-  gfx.noStroke();
-  gfx.sphere(tileSize * 0.5, 8, 8);
-  gfx.pop();
-  gfx.pop();
+  // draw the red sphere on top
+  withCamera(gfx, 50, () => {
+    gfx.push();
+      const sx = player.x * tileSize + tileSize/2;
+      const sy = player.y * tileSize + tileSize/2;
+      const sz = tileSize * 0.3 + sin(frameCount * 0.3) * 2;
+      gfx.translate(sx, sy, sz+50);
+      gfx.noStroke();
+      gfx.fill(255, 0, 0);
+      gfx.sphere(tileSize * 0.5, 8, 8);
+    gfx.pop();
+  });
 }
-
 function tiltWithMouse(gfx) {
-  const rx = map(mouseY, 0, height, -PI / 16, PI / 16);
-  const ry = map(mouseX, 0, width, -PI / 16, PI / 16);
-  gfx.rotateX(-rx * rm);
-  gfx.rotateY(ry * rm);
+  // map mouse to tilt targets
+  const rawX = map(mouseY, 0, height, -PI/16, PI/16) * -rm;
+  const rawY = map(mouseX, 0, width, -PI/16, PI/16) * rm;
+
+  // smooth toward target value
+  tiltX = lerp(tiltX, rawX, 0.03);
+  tiltY = lerp(tiltY, rawY, 0.03);
+
+  // clamp to prevent over-rotation
+  const maxTilt = (PI / 16) * rm;
+  tiltX = constrain(tiltX, -maxTilt, maxTilt);
+  tiltY = constrain(tiltY, -maxTilt, maxTilt);
+
+  // apply rotation
+  gfx.rotateX(tiltX);
+  gfx.rotateY(tiltY);
 }
 
+
+function withCamera(gfx, yOffset, drawFn) {
+  gfx.push();
+    tiltWithMouse(gfx);             
+    const camX = player.x * tileSize + tileSize/2;
+    const camY = player.y * tileSize + tileSize/2;
+    gfx.translate(-camX, -camY + yOffset);   
+    drawFn();
+  gfx.pop();
+}
 function drawBufferWithFisheye() {
   push();
   noStroke();
@@ -207,19 +261,18 @@ function applyFisheye(nx, ny) {
 
 function updateTerminalText() {
   const key = `${player.tx},${player.ty}`;
-  
-  if (portals[key]) {
-    terminalDiv.textContent = 
-      `> PRESS ENTER TO ACCESS: ${portals[key].label}\n` +
+  if (portalsConfig[key]) {
+    terminalDiv.textContent =
+      `> PRESS ENTER TO ACCESS: ${portalsConfig[key].label}\n` +
       `> ARROW KEYS: MOVE\n` +
-      `> ENTER: ENTER TERMINAL ROOM\n` +
+      `> ENTER: ENTER PORTAL\n` +
       `> MOUSE CLICK: START + FULLSCREEN\n` +
       `> SYSTEM: READY`;
   } else {
-    terminalDiv.textContent = 
+    terminalDiv.textContent =
       `> SYS: IDLE\n` +
       `> ARROW KEYS: MOVE\n` +
-      `> ENTER: ACCESS ROOM IF STANDING ON PORTAL\n` +
+      `> ENTER: ACCESS PORTAL IF STANDING\n` +
       `> MOUSE CLICK: START + FULLSCREEN\n` +
       `> SYSTEM: READY`;
   }
@@ -227,46 +280,100 @@ function updateTerminalText() {
 
 
 function calculateTileSize() {
-  tileSize = min(floor(windowWidth / cols / 1.5), floor(windowHeight / rows / 1.5));
+  tileSize = min(
+    floor(windowWidth / cols / 1.5),
+    floor(windowHeight / rows / 1.5)
+  );
 }
 
 function setupGrid() {
   grid = Array.from({ length: rows }, () => Array(cols).fill(0));
-  Object.keys(portals).forEach(key => {
-    const [x, y] = key.split(",").map(Number);
+  Object.keys(portalsConfig).forEach(key => {
+    const [x, y] = key.split(',').map(Number);
     grid[y][x] = 1;
   });
 }
 
+/**
+ * Slides in the full‐screen sidebar overlay.
+ * @param {string} portalKey  e.g. "3,3" or "10,5"
+ */
+
+
+function showPanel(portalKey) {
+  // reveal backdrop + panel
+  document.getElementById('portalOverlay').classList.remove('hidden');
+
+  // scroll to the right section
+  const sectionId = portals[portalKey].id;
+  document.getElementById(sectionId)?.scrollIntoView({ behavior: "auto" });
+}
+
+function hideOverlay() {
+  document.getElementById('portalOverlay').classList.add('hidden');
+  document.getElementById('canvasContainer').classList.remove('zoomed');
+  portalState = 'grid';
+
+ 
+}
+
+
 function keyPressed() {
-  if (keyCode === LEFT_ARROW && player.tx > 0) player.tx--;
-  if (keyCode === RIGHT_ARROW && player.tx < cols - 1) player.tx++;
-  if (keyCode === UP_ARROW && player.ty > 0) player.ty--;
-  if (keyCode === DOWN_ARROW && player.ty < rows - 1) player.ty++;
+  if (keyCode === ESCAPE && portalState === 'overlay') {
+    hideOverlay();
+    return;
+  }
+
+  if (portalState !== 'grid') return;
+  if (keyCode === LEFT_ARROW  && player.tx > 0)      player.tx--;
+  if (keyCode === RIGHT_ARROW && player.tx < cols-1) player.tx++;
+  if (keyCode === UP_ARROW    && player.ty > 0)      player.ty--;
+  if (keyCode === DOWN_ARROW  && player.ty < rows-1) player.ty++;
   updateTerminalText();
+
   if (keyCode === ENTER) {
-    const key = `${player.tx},${player.ty}`;
-    if (portals[key]) window.location.href = portals[key].url;
+    const keyStr = `${player.tx},${player.ty}`;
+    if (portalsConfig[keyStr]) {
+      currentPortalKey = keyStr;
+      document.getElementById('canvasContainer').classList.add('zoomed');
+      setTimeout(() => {
+        initPortalOverlay(portalsConfig[currentPortalKey]);
+      }, ZOOM_DURATION);
+      portalState = 'overlay';
+    }
+  }
+}
+
+function mousePressed() {
+  const cnv = document.querySelector('canvas');
+  if (cnv) cnv.focus();
+
+  const startOverlay = document.getElementById('startOverlay');
+  if (startOverlay) {
+    startOverlay.style.opacity = '0';
+    setTimeout(() => (startOverlay.style.display = 'none'), 500);
+  }
+
+  // click center to close overlay
+  if (
+    portalState === 'overlay' &&
+    abs(mouseX - width/2) < tileSize/2 &&
+    abs(mouseY - height/2) < tileSize/2
+  ) {
+    hideOverlay();
   }
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+  calculateTileSize();
   offscreenBuffer.resizeCanvas(width, height);
 }
 
-function mousePressed() {
-  let cnv = document.querySelector('canvas');
-  if (cnv) cnv.focus();
-
-  // Hide overlay
-  const overlay = document.getElementById("start-overlay");
-  if (overlay) overlay.style.display = "none";
-
-  // Enter fullscreen
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch((err) => {
-      console.warn("Fullscreen failed:", err);
-    });
-  }
-}
+// Expose p5.js lifecycle
+window.preload       = preload;
+window.setup         = setup;
+window.draw          = draw;
+window.keyPressed    = keyPressed;
+window.mousePressed  = mousePressed;
+window.windowResized = windowResized;
